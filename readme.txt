@@ -7,16 +7,19 @@ local Window = Library:CreateWindow()
 
 local MainTab = Window:CreateTab("Main")
 MainTab:CreateButton("Button 1", function()
+script
     print("Button 1 Clicked!")
 end)
 
 MainTab:CreateToggle("Toggle 1", function(state)
+script
     print("Toggle State:", state)
 end)
 
 MainTab:CreateLabelButton("Label Info", "This is a large label text\nYou can add multiple lines here\nThis is an example text\nAdd more information as needed")
 
 MainTab:CreateButton("Button 2", function()
+script
     print("Button 2 Clicked!")
 end)
 
