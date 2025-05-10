@@ -1,0 +1,271 @@
+local Library = {}
+
+local function CreateInstance(class, properties)
+    local instance = Instance.new(class)
+    for property, value in pairs(properties) do
+        instance[property] = value
+    end
+    return instance
+end
+
+function Library:CreateWindow()
+    local GUI = CreateInstance("ScreenGui", {
+        Name = "HuiWare",
+        Parent = game.CoreGui,
+        ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    })
+
+    local MainFrame = CreateInstance("Frame", {
+        Name = "MainFrame",
+        Parent = GUI,
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        Position = UDim2.new(0, 10, 0, 10),
+        Size = UDim2.new(0, 300, 0, 350),
+        Active = true,
+        Draggable = true
+    })
+
+    local Title = CreateInstance("TextLabel", {
+        Name = "Title",
+        Parent = MainFrame,
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        Size = UDim2.new(1, 0, 0, 30),
+        Font = Enum.Font.SourceSansBold,
+        Text = "HuiWare",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 20
+    })
+
+    local TabHolder = CreateInstance("Frame", {
+        Name = "TabHolder",
+        Parent = MainFrame,
+        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+        Position = UDim2.new(0, 0, 0, 30),
+        Size = UDim2.new(1, 0, 0, 30)
+    })
+
+    local ContentHolder = CreateInstance("Frame", {
+        Name = "ContentHolder",
+        Parent = MainFrame,
+        BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+        Position = UDim2.new(0, 0, 0, 60),
+        Size = UDim2.new(1, 0, 1, -60)
+    })
+
+    local UIListLayout = CreateInstance("UIListLayout", {
+        Parent = TabHolder,
+        FillDirection = Enum.FillDirection.Horizontal,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDim.new(0, 2)
+    })
+
+    local ToggleButton = CreateInstance("TextButton", {
+        Name = "ToggleUI",
+        Parent = GUI,
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        Position = UDim2.new(1, -60, 1, -60),
+        Size = UDim2.new(0, 50, 0, 50),
+        Font = Enum.Font.SourceSansBold,
+        Text = "Toggle",
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 14
+    })
+
+    ToggleButton.MouseButton1Click:Connect(function()
+        MainFrame.Visible = not MainFrame.Visible
+    end)
+
+    local TabLibrary = {}
+
+    function TabLibrary:CreateTab(name)
+        local Tab = CreateInstance("TextButton", {
+            Name = name,
+            Parent = TabHolder,
+            BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+            Size = UDim2.new(0, 100, 1, 0),
+            Font = Enum.Font.SourceSans,
+            Text = name,
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+            TextSize = 14,
+            AutoButtonColor = false
+        })
+
+        local TabIndicator = CreateInstance("Frame", {
+            Name = "Indicator",
+            Parent = Tab,
+            BackgroundColor3 = Color3.fromRGB(255, 0, 0),
+            Position = UDim2.new(0, 0, 1, -2),
+            Size = UDim2.new(1, 0, 0, 2),
+            Visible = false
+        })
+
+        local TabContent = CreateInstance("ScrollingFrame", {
+            Name = name.."Content",
+            Parent = ContentHolder,
+            BackgroundTransparency = 1,
+            Size = UDim2.new(1, 0, 1, 0),
+            Visible = false,
+            ScrollBarThickness = 4,
+            CanvasSize = UDim2.new(0, 0, 0, 0)
+        })
+
+        local ContentList = CreateInstance("UIListLayout", {
+            Parent = TabContent,
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDim.new(0, 5)
+        })
+
+        Tab.MouseButton1Click:Connect(function()
+            for _, otherTab in pairs(TabHolder:GetChildren()) do
+                if otherTab:IsA("TextButton") then
+                    otherTab.Indicator.Visible = false
+                end
+            end
+            TabIndicator.Visible = true
+
+            for _, content in pairs(ContentHolder:GetChildren()) do
+                if content:IsA("ScrollingFrame") then
+                    content.Visible = false
+                end
+            end
+            TabContent.Visible = true
+        end)
+
+        local ElementLibrary = {}
+
+        function ElementLibrary:CreateButton(text, callback)
+            local Button = CreateInstance("TextButton", {
+                Parent = TabContent,
+                BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+                Size = UDim2.new(0.9, 0, 0, 30),
+                Position = UDim2.new(0.05, 0, 0, 0),
+                Font = Enum.Font.SourceSans,
+                Text = text,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextSize = 14
+            })
+
+            Button.MouseButton1Click:Connect(callback or function() end)
+            return Button
+        end
+
+        function ElementLibrary:CreateSlider(text, min, max, default, callback)
+            local SliderHolder = CreateInstance("Frame", {
+                Parent = TabContent,
+                BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+                Size = UDim2.new(0.9, 0, 0, 50),
+                Position = UDim2.new(0.05, 0, 0, 0)
+            })
+
+            local SliderText = CreateInstance("TextLabel", {
+                Parent = SliderHolder,
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 5, 0, 0),
+                Size = UDim2.new(1, -10, 0, 25),
+                Font = Enum.Font.SourceSans,
+                Text = text,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextSize = 14,
+                TextXAlignment = Enum.TextXAlignment.Left
+            })
+
+            local SliderFrame = CreateInstance("Frame", {
+                Parent = SliderHolder,
+                BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+                Position = UDim2.new(0, 5, 0, 30),
+                Size = UDim2.new(1, -10, 0, 15)
+            })
+
+            local SliderButton = CreateInstance("TextButton", {
+                Parent = SliderFrame,
+                BackgroundColor3 = Color3.fromRGB(255, 0, 0),
+                Size = UDim2.new(0, 10, 1, 0),
+                Text = "",
+                AutoButtonColor = false
+            })
+
+            local Value = default or min
+            local Dragging = false
+
+            local function UpdateSlider()
+                local Percent = math.clamp((Value - min) / (max - min), 0, 1)
+                SliderButton.Position = UDim2.new(Percent, -5, 0, 0)
+                SliderText.Text = text..": "..tostring(Value)
+                if callback then
+                    callback(Value)
+                end
+            end
+
+            SliderButton.MouseButton1Down:Connect(function()
+                Dragging = true
+            end)
+
+            game:GetService("UserInputService").InputEnded:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    Dragging = false
+                end
+            end)
+
+            game:GetService("UserInputService").InputChanged:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.MouseMovement and Dragging then
+                    local MousePosition = game:GetService("UserInputService"):GetMouseLocation()
+                    local SliderPosition = SliderFrame.AbsolutePosition
+                    local SliderSize = SliderFrame.AbsoluteSize
+                    local Percent = math.clamp((MousePosition.X - SliderPosition.X) / SliderSize.X, 0, 1)
+                    Value = min + (max - min) * Percent
+                    UpdateSlider()
+                end
+            end)
+
+            UpdateSlider()
+            return SliderHolder
+        end
+
+        function ElementLibrary:CreateTextbox(text, placeholder, callback)
+            local TextboxHolder = CreateInstance("Frame", {
+                Parent = TabContent,
+                BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+                Size = UDim2.new(0.9, 0, 0, 50),
+                Position = UDim2.new(0.05, 0, 0, 0)
+            })
+
+            local TextboxLabel = CreateInstance("TextLabel", {
+                Parent = TextboxHolder,
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 5, 0, 0),
+                Size = UDim2.new(1, -10, 0, 25),
+                Font = Enum.Font.SourceSans,
+                Text = text,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextSize = 14,
+                TextXAlignment = Enum.TextXAlignment.Left
+            })
+
+            local Textbox = CreateInstance("TextBox", {
+                Parent = TextboxHolder,
+                BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+                Position = UDim2.new(0, 5, 0, 25),
+                Size = UDim2.new(1, -10, 0, 20),
+                Font = Enum.Font.SourceSans,
+                PlaceholderText = placeholder,
+                Text = "",
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextSize = 14
+            })
+
+            Textbox.FocusLost:Connect(function(enterPressed)
+                if enterPressed and callback then
+                    callback(Textbox.Text)
+                end
+            end)
+
+            return TextboxHolder
+        end
+
+        return ElementLibrary
+    end
+
+    return TabLibrary
+end
+
+return Library
