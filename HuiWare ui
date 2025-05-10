@@ -26,22 +26,35 @@ function Library:CreateWindow()
         BorderSizePixel = 0
     })
 
+    -- Функция для создания HSV цвета
+    local function HSVToColor3(h, s, v)
+        local h = h % 1
+        local s = math.clamp(s, 0, 1)
+        local v = math.clamp(v, 0, 1)
+        
+        local hi = math.floor(h * 6)
+        local f = h * 6 - hi
+        local p = v * (1 - s)
+        local q = v * (1 - f * s)
+        local t = v * (1 - (1 - f) * s)
+        
+        if hi == 0 then return Color3.new(v, t, p)
+        elseif hi == 1 then return Color3.new(q, v, p)
+        elseif hi == 2 then return Color3.new(p, v, t)
+        elseif hi == 3 then return Color3.new(p, q, v)
+        elseif hi == 4 then return Color3.new(t, p, v)
+        else return Color3.new(v, p, q)
+        end
+    end
+
     -- Создаем радужную границу
-    local borderSize = 1
     local borders = {}
-    local borderColors = {
-        Color3.fromRGB(255, 0, 0),
-        Color3.fromRGB(255, 165, 0),
-        Color3.fromRGB(255, 255, 0),
-        Color3.fromRGB(0, 255, 0),
-        Color3.fromRGB(0, 0, 255),
-        Color3.fromRGB(148, 0, 211)
-    }
+    local borderSize = 2
 
     -- Верхняя граница
     borders.top = CreateInstance("Frame", {
         Parent = MainFrame,
-        BackgroundColor3 = borderColors[1],
+        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
         Position = UDim2.new(0, -borderSize, 0, -borderSize),
         Size = UDim2.new(1, borderSize * 2, 0, borderSize),
         BorderSizePixel = 0,
@@ -51,7 +64,7 @@ function Library:CreateWindow()
     -- Правая граница
     borders.right = CreateInstance("Frame", {
         Parent = MainFrame,
-        BackgroundColor3 = borderColors[2],
+        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
         Position = UDim2.new(1, 0, 0, -borderSize),
         Size = UDim2.new(0, borderSize, 1, borderSize * 2),
         BorderSizePixel = 0,
@@ -61,7 +74,7 @@ function Library:CreateWindow()
     -- Нижняя граница
     borders.bottom = CreateInstance("Frame", {
         Parent = MainFrame,
-        BackgroundColor3 = borderColors[3],
+        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
         Position = UDim2.new(0, -borderSize, 1, 0),
         Size = UDim2.new(1, borderSize * 2, 0, borderSize),
         BorderSizePixel = 0,
@@ -71,7 +84,7 @@ function Library:CreateWindow()
     -- Левая граница
     borders.left = CreateInstance("Frame", {
         Parent = MainFrame,
-        BackgroundColor3 = borderColors[4],
+        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
         Position = UDim2.new(0, -borderSize, 0, -borderSize),
         Size = UDim2.new(0, borderSize, 1, borderSize * 2),
         BorderSizePixel = 0,
@@ -81,12 +94,22 @@ function Library:CreateWindow()
     -- Анимация границ
     spawn(function()
         local speed = 0.5
+        local offset = 0
         while true do
-            local time = tick() * speed
-            for i, border in pairs(borders) do
-                local colorIndex = (math.floor(time + i) % #borderColors) + 1
-                border.BackgroundColor3 = borderColors[colorIndex]
-            end
+            offset = (offset + speed/60) % 1
+            
+            local colors = {
+                top = HSVToColor3(offset, 1, 1),
+                right = HSVToColor3(offset + 0.25, 1, 1),
+                bottom = HSVToColor3(offset + 0.5, 1, 1),
+                left = HSVToColor3(offset + 0.75, 1, 1)
+            }
+            
+            borders.top.BackgroundColor3 = colors.top
+            borders.right.BackgroundColor3 = colors.right
+            borders.bottom.BackgroundColor3 = colors.bottom
+            borders.left.BackgroundColor3 = colors.left
+            
             wait()
         end
     end)
@@ -236,9 +259,50 @@ function Library:CreateWindow()
             return Button
         end
 
+        function ElementLibrary:CreateToggle(text, callback)
+            local ToggleFrame = CreateInstance("Frame", {
+                Parent = TabContent,
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                Size = UDim2.new(1, 0, 0, 35),
+                BorderSizePixel = 0
+            })
+
+            local ToggleButton = CreateInstance("TextButton", {
+                Parent = ToggleFrame,
+                BackgroundColor3 = Color3.fromRGB(255, 0, 0),
+                Position = UDim2.new(0, 10, 0.5, -10),
+                Size = UDim2.new(0, 20, 0, 20),
+                Text = "",
+                BorderSizePixel = 0
+            })
+
+            local ToggleText = CreateInstance("TextLabel", {
+                Parent = ToggleFrame,
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 40, 0, 0),
+                Size = UDim2.new(1, -50, 1, 0),
+                Font = Enum.Font.Gotham,
+                Text = text,
+                TextColor3 = Color3.fromRGB(255, 255, 255),
+                TextSize = 14,
+                TextXAlignment = Enum.TextXAlignment.Left
+            })
+
+            local toggled = false
+            
+            ToggleButton.MouseButton1Click:Connect(function()
+                toggled = not toggled
+                ToggleButton.BackgroundColor3 = toggled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+                if callback then
+                    callback(toggled)
+                end
+            end)
+
+            return ToggleFrame
+        end
+
         function ElementLibrary:CreateLabelButton(text, labelText)
             local Button = ElementLibrary:CreateButton(text, function()
-                -- Создаем всплывающее окно
                 local PopupFrame = CreateInstance("Frame", {
                     Parent = GUI,
                     BackgroundColor3 = Color3.fromRGB(30, 30, 30),
