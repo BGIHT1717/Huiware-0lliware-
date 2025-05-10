@@ -18,9 +18,9 @@ function Library:CreateWindow()
     local MainFrame = CreateInstance("Frame", {
         Name = "MainFrame",
         Parent = GUI,
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
         Position = UDim2.new(0, 10, 0, 10),
-        Size = UDim2.new(0, 300, 0, 350),
+        Size = UDim2.new(0, 500, 0, 350),
         Active = true,
         Draggable = true
     })
@@ -28,33 +28,34 @@ function Library:CreateWindow()
     local Title = CreateInstance("TextLabel", {
         Name = "Title",
         Parent = MainFrame,
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        Size = UDim2.new(1, 0, 0, 30),
-        Font = Enum.Font.SourceSansBold,
+        BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+        Size = UDim2.new(0, 150, 0, 40),
+        Font = Enum.Font.GothamBold,
         Text = "HuiWare",
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 20
+        TextSize = 22
     })
 
-    local TabHolder = CreateInstance("Frame", {
+    local TabHolder = CreateInstance("ScrollingFrame", {
         Name = "TabHolder",
         Parent = MainFrame,
-        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-        Position = UDim2.new(0, 0, 0, 30),
-        Size = UDim2.new(1, 0, 0, 30)
+        BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+        Position = UDim2.new(0, 0, 0, 40),
+        Size = UDim2.new(0, 150, 1, -40),
+        ScrollBarThickness = 2,
+        CanvasSize = UDim2.new(0, 0, 0, 0)
     })
 
     local ContentHolder = CreateInstance("Frame", {
         Name = "ContentHolder",
         Parent = MainFrame,
-        BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-        Position = UDim2.new(0, 0, 0, 60),
-        Size = UDim2.new(1, 0, 1, -60)
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        Position = UDim2.new(0, 150, 0, 0),
+        Size = UDim2.new(1, -150, 1, 0)
     })
 
     local UIListLayout = CreateInstance("UIListLayout", {
         Parent = TabHolder,
-        FillDirection = Enum.FillDirection.Horizontal,
         SortOrder = Enum.SortOrder.LayoutOrder,
         Padding = UDim.new(0, 2)
     })
@@ -62,13 +63,13 @@ function Library:CreateWindow()
     local ToggleButton = CreateInstance("TextButton", {
         Name = "ToggleUI",
         Parent = GUI,
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        BackgroundColor3 = Color3.fromRGB(25, 25, 25),
         Position = UDim2.new(1, -60, 1, -60),
         Size = UDim2.new(0, 50, 0, 50),
-        Font = Enum.Font.SourceSansBold,
-        Text = "Toggle",
+        Font = Enum.Font.GothamBold,
+        Text = "T",
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14
+        TextSize = 18
     })
 
     ToggleButton.MouseButton1Click:Connect(function()
@@ -81,12 +82,13 @@ function Library:CreateWindow()
         local Tab = CreateInstance("TextButton", {
             Name = name,
             Parent = TabHolder,
-            BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-            Size = UDim2.new(0, 100, 1, 0),
-            Font = Enum.Font.SourceSans,
-            Text = name,
+            BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+            Size = UDim2.new(1, -4, 0, 35),
+            Font = Enum.Font.Gotham,
+            Text = "  "..name,
             TextColor3 = Color3.fromRGB(255, 255, 255),
             TextSize = 14,
+            TextXAlignment = Enum.TextXAlignment.Left,
             AutoButtonColor = false
         })
 
@@ -94,8 +96,8 @@ function Library:CreateWindow()
             Name = "Indicator",
             Parent = Tab,
             BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-            Position = UDim2.new(0, 0, 1, -2),
-            Size = UDim2.new(1, 0, 0, 2),
+            Position = UDim2.new(0, 0, 0, 0),
+            Size = UDim2.new(0, 2, 1, 0),
             Visible = false
         })
 
@@ -103,7 +105,8 @@ function Library:CreateWindow()
             Name = name.."Content",
             Parent = ContentHolder,
             BackgroundTransparency = 1,
-            Size = UDim2.new(1, 0, 1, 0),
+            Position = UDim2.new(0, 10, 0, 10),
+            Size = UDim2.new(1, -20, 1, -20),
             Visible = false,
             ScrollBarThickness = 4,
             CanvasSize = UDim2.new(0, 0, 0, 0)
@@ -112,16 +115,28 @@ function Library:CreateWindow()
         local ContentList = CreateInstance("UIListLayout", {
             Parent = TabContent,
             SortOrder = Enum.SortOrder.LayoutOrder,
-            Padding = UDim.new(0, 5)
+            Padding = UDim.new(0, 8)
         })
+
+        ContentList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentList.AbsoluteContentSize.Y + 10)
+        end)
+
+        UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            TabHolder.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+        end)
 
         Tab.MouseButton1Click:Connect(function()
             for _, otherTab in pairs(TabHolder:GetChildren()) do
                 if otherTab:IsA("TextButton") then
                     otherTab.Indicator.Visible = false
+                    otherTab.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+                    otherTab.TextColor3 = Color3.fromRGB(255, 255, 255)
                 end
             end
             TabIndicator.Visible = true
+            Tab.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            Tab.TextColor3 = Color3.fromRGB(255, 255, 255)
 
             for _, content in pairs(ContentHolder:GetChildren()) do
                 if content:IsA("ScrollingFrame") then
@@ -136,14 +151,21 @@ function Library:CreateWindow()
         function ElementLibrary:CreateButton(text, callback)
             local Button = CreateInstance("TextButton", {
                 Parent = TabContent,
-                BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-                Size = UDim2.new(0.9, 0, 0, 30),
-                Position = UDim2.new(0.05, 0, 0, 0),
-                Font = Enum.Font.SourceSans,
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                Size = UDim2.new(1, 0, 0, 35),
+                Font = Enum.Font.Gotham,
                 Text = text,
                 TextColor3 = Color3.fromRGB(255, 255, 255),
                 TextSize = 14
             })
+
+            Button.MouseEnter:Connect(function()
+                Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            end)
+
+            Button.MouseLeave:Connect(function()
+                Button.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+            end)
 
             Button.MouseButton1Click:Connect(callback or function() end)
             return Button
@@ -152,17 +174,16 @@ function Library:CreateWindow()
         function ElementLibrary:CreateSlider(text, min, max, default, callback)
             local SliderHolder = CreateInstance("Frame", {
                 Parent = TabContent,
-                BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-                Size = UDim2.new(0.9, 0, 0, 50),
-                Position = UDim2.new(0.05, 0, 0, 0)
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                Size = UDim2.new(1, 0, 0, 50)
             })
 
             local SliderText = CreateInstance("TextLabel", {
                 Parent = SliderHolder,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 5, 0, 0),
-                Size = UDim2.new(1, -10, 0, 25),
-                Font = Enum.Font.SourceSans,
+                Position = UDim2.new(0, 10, 0, 0),
+                Size = UDim2.new(1, -20, 0, 25),
+                Font = Enum.Font.Gotham,
                 Text = text,
                 TextColor3 = Color3.fromRGB(255, 255, 255),
                 TextSize = 14,
@@ -171,17 +192,23 @@ function Library:CreateWindow()
 
             local SliderFrame = CreateInstance("Frame", {
                 Parent = SliderHolder,
-                BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-                Position = UDim2.new(0, 5, 0, 30),
-                Size = UDim2.new(1, -10, 0, 15)
+                BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+                Position = UDim2.new(0, 10, 0, 35),
+                Size = UDim2.new(1, -20, 0, 5)
+            })
+
+            local SliderFill = CreateInstance("Frame", {
+                Parent = SliderFrame,
+                BackgroundColor3 = Color3.fromRGB(255, 0, 0),
+                Size = UDim2.new(0, 0, 1, 0)
             })
 
             local SliderButton = CreateInstance("TextButton", {
                 Parent = SliderFrame,
-                BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-                Size = UDim2.new(0, 10, 1, 0),
-                Text = "",
-                AutoButtonColor = false
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                Position = UDim2.new(0, -5, 0, -7),
+                Size = UDim2.new(0, 10, 0, 20),
+                Text = ""
             })
 
             local Value = default or min
@@ -189,8 +216,9 @@ function Library:CreateWindow()
 
             local function UpdateSlider()
                 local Percent = math.clamp((Value - min) / (max - min), 0, 1)
-                SliderButton.Position = UDim2.new(Percent, -5, 0, 0)
-                SliderText.Text = text..": "..tostring(Value)
+                SliderFill.Size = UDim2.new(Percent, 0, 1, 0)
+                SliderButton.Position = UDim2.new(Percent, -5, 0, -7)
+                SliderText.Text = text..": "..tostring(math.floor(Value))
                 if callback then
                     callback(Value)
                 end
@@ -224,17 +252,16 @@ function Library:CreateWindow()
         function ElementLibrary:CreateTextbox(text, placeholder, callback)
             local TextboxHolder = CreateInstance("Frame", {
                 Parent = TabContent,
-                BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-                Size = UDim2.new(0.9, 0, 0, 50),
-                Position = UDim2.new(0.05, 0, 0, 0)
+                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
+                Size = UDim2.new(1, 0, 0, 70)
             })
 
             local TextboxLabel = CreateInstance("TextLabel", {
                 Parent = TextboxHolder,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 5, 0, 0),
-                Size = UDim2.new(1, -10, 0, 25),
-                Font = Enum.Font.SourceSans,
+                Position = UDim2.new(0, 10, 0, 0),
+                Size = UDim2.new(1, -20, 0, 25),
+                Font = Enum.Font.Gotham,
                 Text = text,
                 TextColor3 = Color3.fromRGB(255, 255, 255),
                 TextSize = 14,
@@ -243,14 +270,15 @@ function Library:CreateWindow()
 
             local Textbox = CreateInstance("TextBox", {
                 Parent = TextboxHolder,
-                BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-                Position = UDim2.new(0, 5, 0, 25),
-                Size = UDim2.new(1, -10, 0, 20),
-                Font = Enum.Font.SourceSans,
+                BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+                Position = UDim2.new(0, 10, 0, 30),
+                Size = UDim2.new(1, -20, 0, 30),
+                Font = Enum.Font.Gotham,
                 PlaceholderText = placeholder,
                 Text = "",
                 TextColor3 = Color3.fromRGB(255, 255, 255),
-                TextSize = 14
+                TextSize = 14,
+                ClearTextOnFocus = false
             })
 
             Textbox.FocusLost:Connect(function(enterPressed)
