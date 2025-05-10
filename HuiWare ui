@@ -22,7 +22,8 @@ function Library:CreateWindow()
         Position = UDim2.new(0, 10, 0, 10),
         Size = UDim2.new(0, 500, 0, 350),
         Active = true,
-        Draggable = true
+        Draggable = true,
+        BorderSizePixel = 0
     })
 
     -- Создаем радужную границу
@@ -43,6 +44,8 @@ function Library:CreateWindow()
         BackgroundColor3 = borderColors[1],
         Position = UDim2.new(0, -borderSize, 0, -borderSize),
         Size = UDim2.new(1, borderSize * 2, 0, borderSize),
+        BorderSizePixel = 0,
+        ZIndex = 2
     })
 
     -- Правая граница
@@ -51,6 +54,8 @@ function Library:CreateWindow()
         BackgroundColor3 = borderColors[2],
         Position = UDim2.new(1, 0, 0, -borderSize),
         Size = UDim2.new(0, borderSize, 1, borderSize * 2),
+        BorderSizePixel = 0,
+        ZIndex = 2
     })
 
     -- Нижняя граница
@@ -59,6 +64,8 @@ function Library:CreateWindow()
         BackgroundColor3 = borderColors[3],
         Position = UDim2.new(0, -borderSize, 1, 0),
         Size = UDim2.new(1, borderSize * 2, 0, borderSize),
+        BorderSizePixel = 0,
+        ZIndex = 2
     })
 
     -- Левая граница
@@ -67,20 +74,22 @@ function Library:CreateWindow()
         BackgroundColor3 = borderColors[4],
         Position = UDim2.new(0, -borderSize, 0, -borderSize),
         Size = UDim2.new(0, borderSize, 1, borderSize * 2),
+        BorderSizePixel = 0,
+        ZIndex = 2
     })
 
     -- Анимация границ
-    local function animateBorders()
+    spawn(function()
         local speed = 0.5
-        game:GetService("RunService").RenderStepped:Connect(function()
+        while true do
             local time = tick() * speed
             for i, border in pairs(borders) do
                 local colorIndex = (math.floor(time + i) % #borderColors) + 1
                 border.BackgroundColor3 = borderColors[colorIndex]
             end
-        end)
-    end
-    animateBorders()
+            wait()
+        end
+    end)
 
     local Title = CreateInstance("TextLabel", {
         Name = "Title",
@@ -90,7 +99,8 @@ function Library:CreateWindow()
         Font = Enum.Font.GothamBold,
         Text = "HuiWare",
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 22
+        TextSize = 22,
+        BorderSizePixel = 0
     })
 
     local TabHolder = CreateInstance("ScrollingFrame", {
@@ -100,7 +110,8 @@ function Library:CreateWindow()
         Position = UDim2.new(0, 0, 0, 40),
         Size = UDim2.new(0, 150, 1, -40),
         ScrollBarThickness = 2,
-        CanvasSize = UDim2.new(0, 0, 0, 0)
+        CanvasSize = UDim2.new(0, 0, 0, 0),
+        BorderSizePixel = 0
     })
 
     local ContentHolder = CreateInstance("Frame", {
@@ -108,7 +119,8 @@ function Library:CreateWindow()
         Parent = MainFrame,
         BackgroundColor3 = Color3.fromRGB(30, 30, 30),
         Position = UDim2.new(0, 150, 0, 0),
-        Size = UDim2.new(1, -150, 1, 0)
+        Size = UDim2.new(1, -150, 1, 0),
+        BorderSizePixel = 0
     })
 
     local UIListLayout = CreateInstance("UIListLayout", {
@@ -126,7 +138,8 @@ function Library:CreateWindow()
         Font = Enum.Font.GothamBold,
         Text = "T",
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18
+        TextSize = 18,
+        BorderSizePixel = 0
     })
 
     ToggleButton.MouseButton1Click:Connect(function()
@@ -134,7 +147,7 @@ function Library:CreateWindow()
     end)
 
     local TabLibrary = {}
-
+    
     function TabLibrary:CreateTab(name)
         local Tab = CreateInstance("TextButton", {
             Name = name,
@@ -176,14 +189,6 @@ function Library:CreateWindow()
             SortOrder = Enum.SortOrder.LayoutOrder,
             Padding = UDim.new(0, 8)
         })
-
-        ContentList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentList.AbsoluteContentSize.Y + 10)
-        end)
-
-        UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-            TabHolder.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
-        end)
 
         Tab.MouseButton1Click:Connect(function()
             for _, otherTab in pairs(TabHolder:GetChildren()) do
@@ -231,158 +236,68 @@ function Library:CreateWindow()
             return Button
         end
 
-        function ElementLibrary:CreateSlider(text, min, max, default, callback)
-            local SliderHolder = CreateInstance("Frame", {
-                Parent = TabContent,
-                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-                Size = UDim2.new(1, 0, 0, 50),
-                BorderSizePixel = 0
-            })
+        function ElementLibrary:CreateLabelButton(text, labelText)
+            local Button = ElementLibrary:CreateButton(text, function()
+                -- Создаем всплывающее окно
+                local PopupFrame = CreateInstance("Frame", {
+                    Parent = GUI,
+                    BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+                    Position = UDim2.new(0.5, -200, 0.5, -150),
+                    Size = UDim2.new(0, 400, 0, 300),
+                    BorderSizePixel = 0
+                })
 
-            local SliderText = CreateInstance("TextLabel", {
-                Parent = SliderHolder,
-                BackgroundTransparency = 1,
-                Position = UDim2.new(0, 10, 0, 0),
-                Size = UDim2.new(1, -20, 0, 25),
-                Font = Enum.Font.Gotham,
-                Text = text,
-                TextColor3 = Color3.fromRGB(255, 255, 255),
-                TextSize = 14,
-                TextXAlignment = Enum.TextXAlignment.Left
-            })
+                local PopupTitle = CreateInstance("TextLabel", {
+                    Parent = PopupFrame,
+                    BackgroundColor3 = Color3.fromRGB(25, 25, 25),
+                    Size = UDim2.new(1, 0, 0, 30),
+                    Font = Enum.Font.GothamBold,
+                    Text = text,
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    TextSize = 16,
+                    BorderSizePixel = 0
+                })
 
-            local SliderFrame = CreateInstance("Frame", {
-                Parent = SliderHolder,
-                BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-                Position = UDim2.new(0, 10, 0, 35),
-                Size = UDim2.new(1, -20, 0, 5),
-                BorderSizePixel = 0
-            })
+                local CloseButton = CreateInstance("TextButton", {
+                    Parent = PopupFrame,
+                    BackgroundColor3 = Color3.fromRGB(255, 0, 0),
+                    Position = UDim2.new(1, -25, 0, 5),
+                    Size = UDim2.new(0, 20, 0, 20),
+                    Font = Enum.Font.GothamBold,
+                    Text = "X",
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    TextSize = 14,
+                    BorderSizePixel = 0
+                })
 
-            local SliderFill = CreateInstance("Frame", {
-                Parent = SliderFrame,
-                BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-                Size = UDim2.new(0, 0, 1, 0),
-                BorderSizePixel = 0
-            })
+                local LabelContent = CreateInstance("TextLabel", {
+                    Parent = PopupFrame,
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 10, 0, 40),
+                    Size = UDim2.new(1, -20, 1, -50),
+                    Font = Enum.Font.Gotham,
+                    Text = labelText,
+                    TextColor3 = Color3.fromRGB(255, 255, 255),
+                    TextSize = 14,
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextYAlignment = Enum.TextYAlignment.Top,
+                    TextWrapped = true
+                })
 
-            local SliderButton = CreateInstance("TextButton", {
-                Parent = SliderFrame,
-                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-                Position = UDim2.new(0, -5, 0, -7),
-                Size = UDim2.new(0, 10, 0, 20),
-                Text = "",
-                BorderSizePixel = 0
-            })
-
-            local Value = default or min
-            local Dragging = false
-
-            local function UpdateSlider(input)
-                local MousePosition
-                if input.UserInputType == Enum.UserInputType.Touch then
-                    MousePosition = Vector2.new(input.Position.X, input.Position.Y)
-                else
-                    MousePosition = game:GetService("UserInputService"):GetMouseLocation()
-                end
-                
-                local SliderPosition = SliderFrame.AbsolutePosition
-                local SliderSize = SliderFrame.AbsoluteSize
-                local Percent = math.clamp((MousePosition.X - SliderPosition.X) / SliderSize.X, 0, 1)
-                Value = min + (max - min) * Percent
-                
-                SliderFill.Size = UDim2.new(Percent, 0, 1, 0)
-                SliderButton.Position = UDim2.new(Percent, -5, 0, -7)
-                SliderText.Text = text..": "..tostring(math.floor(Value))
-                
-                if callback then
-                    callback(Value)
-                end
-            end
-
-            SliderButton.MouseButton1Down:Connect(function()
-                Dragging = true
+                CloseButton.MouseButton1Click:Connect(function()
+                    PopupFrame:Destroy()
+                end)
             end)
-
-            SliderButton.TouchStarted:Connect(function()
-                Dragging = true
-            end)
-
-            game:GetService("UserInputService").InputEnded:Connect(function(input)
-                if (input.UserInputType == Enum.UserInputType.MouseButton1 or 
-                    input.UserInputType == Enum.UserInputType.Touch) then
-                    Dragging = false
-                end
-            end)
-
-            game:GetService("UserInputService").InputChanged:Connect(function(input)
-                if Dragging and 
-                   (input.UserInputType == Enum.UserInputType.MouseMovement or 
-                    input.UserInputType == Enum.UserInputType.Touch) then
-                    UpdateSlider(input)
-                end
-            end)
-
-            -- Добавляем обработку касания для всего SliderFrame
-            SliderFrame.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.Touch or 
-                   input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    Dragging = true
-                    UpdateSlider(input)
-                end
-            end)
-
-            UpdateSlider({Position = Vector2.new(
-                SliderFrame.AbsolutePosition.X + 
-                (((default or min) - min) / (max - min)) * SliderFrame.AbsoluteSize.X,
-                SliderFrame.AbsolutePosition.Y
-            ), UserInputType = Enum.UserInputType.Touch})
-            
-            return SliderHolder
+            return Button
         end
 
-        function ElementLibrary:CreateTextbox(text, placeholder, callback)
-            local TextboxHolder = CreateInstance("Frame", {
-                Parent = TabContent,
-                BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-                Size = UDim2.new(1, 0, 0, 70),
-                BorderSizePixel = 0
-            })
+        ContentList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            TabContent.CanvasSize = UDim2.new(0, 0, 0, ContentList.AbsoluteContentSize.Y + 10)
+        end)
 
-            local TextboxLabel = CreateInstance("TextLabel", {
-                Parent = TextboxHolder,
-                BackgroundTransparency = 1,
-                Position = UDim2.new(0, 10, 0, 0),
-                Size = UDim2.new(1, -20, 0, 25),
-                Font = Enum.Font.Gotham,
-                Text = text,
-                TextColor3 = Color3.fromRGB(255, 255, 255),
-                TextSize = 14,
-                TextXAlignment = Enum.TextXAlignment.Left
-            })
-
-            local Textbox = CreateInstance("TextBox", {
-                Parent = TextboxHolder,
-                BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-                Position = UDim2.new(0, 10, 0, 30),
-                Size = UDim2.new(1, -20, 0, 30),
-                Font = Enum.Font.Gotham,
-                PlaceholderText = placeholder,
-                Text = "",
-                TextColor3 = Color3.fromRGB(255, 255, 255),
-                TextSize = 14,
-                ClearTextOnFocus = false,
-                BorderSizePixel = 0
-            })
-
-            Textbox.FocusLost:Connect(function(enterPressed)
-                if enterPressed and callback then
-                    callback(Textbox.Text)
-                end
-            end)
-
-            return TextboxHolder
-        end
+        UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            TabHolder.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y + 10)
+        end)
 
         return ElementLibrary
     end
