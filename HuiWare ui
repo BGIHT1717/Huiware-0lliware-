@@ -25,6 +25,63 @@ function Library:CreateWindow()
         Draggable = true
     })
 
+    -- Создаем радужную границу
+    local borderSize = 1
+    local borders = {}
+    local borderColors = {
+        Color3.fromRGB(255, 0, 0),
+        Color3.fromRGB(255, 165, 0),
+        Color3.fromRGB(255, 255, 0),
+        Color3.fromRGB(0, 255, 0),
+        Color3.fromRGB(0, 0, 255),
+        Color3.fromRGB(148, 0, 211)
+    }
+
+    -- Верхняя граница
+    borders.top = CreateInstance("Frame", {
+        Parent = MainFrame,
+        BackgroundColor3 = borderColors[1],
+        Position = UDim2.new(0, -borderSize, 0, -borderSize),
+        Size = UDim2.new(1, borderSize * 2, 0, borderSize),
+    })
+
+    -- Правая граница
+    borders.right = CreateInstance("Frame", {
+        Parent = MainFrame,
+        BackgroundColor3 = borderColors[2],
+        Position = UDim2.new(1, 0, 0, -borderSize),
+        Size = UDim2.new(0, borderSize, 1, borderSize * 2),
+    })
+
+    -- Нижняя граница
+    borders.bottom = CreateInstance("Frame", {
+        Parent = MainFrame,
+        BackgroundColor3 = borderColors[3],
+        Position = UDim2.new(0, -borderSize, 1, 0),
+        Size = UDim2.new(1, borderSize * 2, 0, borderSize),
+    })
+
+    -- Левая граница
+    borders.left = CreateInstance("Frame", {
+        Parent = MainFrame,
+        BackgroundColor3 = borderColors[4],
+        Position = UDim2.new(0, -borderSize, 0, -borderSize),
+        Size = UDim2.new(0, borderSize, 1, borderSize * 2),
+    })
+
+    -- Анимация границ
+    local function animateBorders()
+        local speed = 0.5
+        game:GetService("RunService").RenderStepped:Connect(function()
+            local time = tick() * speed
+            for i, border in pairs(borders) do
+                local colorIndex = (math.floor(time + i) % #borderColors) + 1
+                border.BackgroundColor3 = borderColors[colorIndex]
+            end
+        end)
+    end
+    animateBorders()
+
     local Title = CreateInstance("TextLabel", {
         Name = "Title",
         Parent = MainFrame,
@@ -57,7 +114,7 @@ function Library:CreateWindow()
     local UIListLayout = CreateInstance("UIListLayout", {
         Parent = TabHolder,
         SortOrder = Enum.SortOrder.LayoutOrder,
-        Padding = UDim.new(0, 2)
+        Padding = UDim.new(0, 0)
     })
 
     local ToggleButton = CreateInstance("TextButton", {
@@ -83,13 +140,14 @@ function Library:CreateWindow()
             Name = name,
             Parent = TabHolder,
             BackgroundColor3 = Color3.fromRGB(25, 25, 25),
-            Size = UDim2.new(1, -4, 0, 35),
+            Size = UDim2.new(1, 0, 0, 35),
             Font = Enum.Font.Gotham,
             Text = "  "..name,
             TextColor3 = Color3.fromRGB(255, 255, 255),
             TextSize = 14,
             TextXAlignment = Enum.TextXAlignment.Left,
-            AutoButtonColor = false
+            AutoButtonColor = false,
+            BorderSizePixel = 0
         })
 
         local TabIndicator = CreateInstance("Frame", {
@@ -98,7 +156,8 @@ function Library:CreateWindow()
             BackgroundColor3 = Color3.fromRGB(255, 0, 0),
             Position = UDim2.new(0, 0, 0, 0),
             Size = UDim2.new(0, 2, 1, 0),
-            Visible = false
+            Visible = false,
+            BorderSizePixel = 0
         })
 
         local TabContent = CreateInstance("ScrollingFrame", {
@@ -156,7 +215,8 @@ function Library:CreateWindow()
                 Font = Enum.Font.Gotham,
                 Text = text,
                 TextColor3 = Color3.fromRGB(255, 255, 255),
-                TextSize = 14
+                TextSize = 14,
+                BorderSizePixel = 0
             })
 
             Button.MouseEnter:Connect(function()
@@ -175,7 +235,8 @@ function Library:CreateWindow()
             local SliderHolder = CreateInstance("Frame", {
                 Parent = TabContent,
                 BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-                Size = UDim2.new(1, 0, 0, 50)
+                Size = UDim2.new(1, 0, 0, 50),
+                BorderSizePixel = 0
             })
 
             local SliderText = CreateInstance("TextLabel", {
@@ -194,13 +255,15 @@ function Library:CreateWindow()
                 Parent = SliderHolder,
                 BackgroundColor3 = Color3.fromRGB(25, 25, 25),
                 Position = UDim2.new(0, 10, 0, 35),
-                Size = UDim2.new(1, -20, 0, 5)
+                Size = UDim2.new(1, -20, 0, 5),
+                BorderSizePixel = 0
             })
 
             local SliderFill = CreateInstance("Frame", {
                 Parent = SliderFrame,
                 BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-                Size = UDim2.new(0, 0, 1, 0)
+                Size = UDim2.new(0, 0, 1, 0),
+                BorderSizePixel = 0
             })
 
             local SliderButton = CreateInstance("TextButton", {
@@ -208,17 +271,30 @@ function Library:CreateWindow()
                 BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                 Position = UDim2.new(0, -5, 0, -7),
                 Size = UDim2.new(0, 10, 0, 20),
-                Text = ""
+                Text = "",
+                BorderSizePixel = 0
             })
 
             local Value = default or min
             local Dragging = false
 
-            local function UpdateSlider()
-                local Percent = math.clamp((Value - min) / (max - min), 0, 1)
+            local function UpdateSlider(input)
+                local MousePosition
+                if input.UserInputType == Enum.UserInputType.Touch then
+                    MousePosition = Vector2.new(input.Position.X, input.Position.Y)
+                else
+                    MousePosition = game:GetService("UserInputService"):GetMouseLocation()
+                end
+                
+                local SliderPosition = SliderFrame.AbsolutePosition
+                local SliderSize = SliderFrame.AbsoluteSize
+                local Percent = math.clamp((MousePosition.X - SliderPosition.X) / SliderSize.X, 0, 1)
+                Value = min + (max - min) * Percent
+                
                 SliderFill.Size = UDim2.new(Percent, 0, 1, 0)
                 SliderButton.Position = UDim2.new(Percent, -5, 0, -7)
                 SliderText.Text = text..": "..tostring(math.floor(Value))
+                
                 if callback then
                     callback(Value)
                 end
@@ -228,24 +304,40 @@ function Library:CreateWindow()
                 Dragging = true
             end)
 
+            SliderButton.TouchStarted:Connect(function()
+                Dragging = true
+            end)
+
             game:GetService("UserInputService").InputEnded:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                if (input.UserInputType == Enum.UserInputType.MouseButton1 or 
+                    input.UserInputType == Enum.UserInputType.Touch) then
                     Dragging = false
                 end
             end)
 
             game:GetService("UserInputService").InputChanged:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.MouseMovement and Dragging then
-                    local MousePosition = game:GetService("UserInputService"):GetMouseLocation()
-                    local SliderPosition = SliderFrame.AbsolutePosition
-                    local SliderSize = SliderFrame.AbsoluteSize
-                    local Percent = math.clamp((MousePosition.X - SliderPosition.X) / SliderSize.X, 0, 1)
-                    Value = min + (max - min) * Percent
-                    UpdateSlider()
+                if Dragging and 
+                   (input.UserInputType == Enum.UserInputType.MouseMovement or 
+                    input.UserInputType == Enum.UserInputType.Touch) then
+                    UpdateSlider(input)
                 end
             end)
 
-            UpdateSlider()
+            -- Добавляем обработку касания для всего SliderFrame
+            SliderFrame.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Touch or 
+                   input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    Dragging = true
+                    UpdateSlider(input)
+                end
+            end)
+
+            UpdateSlider({Position = Vector2.new(
+                SliderFrame.AbsolutePosition.X + 
+                (((default or min) - min) / (max - min)) * SliderFrame.AbsoluteSize.X,
+                SliderFrame.AbsolutePosition.Y
+            ), UserInputType = Enum.UserInputType.Touch})
+            
             return SliderHolder
         end
 
@@ -253,7 +345,8 @@ function Library:CreateWindow()
             local TextboxHolder = CreateInstance("Frame", {
                 Parent = TabContent,
                 BackgroundColor3 = Color3.fromRGB(35, 35, 35),
-                Size = UDim2.new(1, 0, 0, 70)
+                Size = UDim2.new(1, 0, 0, 70),
+                BorderSizePixel = 0
             })
 
             local TextboxLabel = CreateInstance("TextLabel", {
@@ -278,7 +371,8 @@ function Library:CreateWindow()
                 Text = "",
                 TextColor3 = Color3.fromRGB(255, 255, 255),
                 TextSize = 14,
-                ClearTextOnFocus = false
+                ClearTextOnFocus = false,
+                BorderSizePixel = 0
             })
 
             Textbox.FocusLost:Connect(function(enterPressed)
